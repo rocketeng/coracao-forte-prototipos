@@ -1,0 +1,747 @@
+<title>Painel Coração Forte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: brand-green sidebar with four views; content column of summary tiles, then charts, then the working tables. */
+:root{
+  --bg:#f3f1ed; --surface:#ffffff; --raised:#faf9f7; --line:#e4dfd8; --line-soft:#eeeae4;
+  --fg:#1f2e2b; --muted:#66706d; --faint:#8b928f;
+  --brand:#2a423d; --sand:#c7bfb4; --sand-soft:#ede8e1; --ink:#2a423d;
+  --btn:#2a423d; --btn-fg:#ffffff;
+  --s1:#0b72a3; --s2:#c26a2a;
+  --good:#2f7a52; --good-soft:#e3f1e8; --warn:#9a5b00; --warn-soft:#fbefd9; --crit:#b3261e; --crit-soft:#fbe9e7;
+  --neutral:#5e6663; --neutral-soft:#eceeed; --club:#6b5a3e; --club-soft:#efe8dc;
+  --font:"Poppins",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r-lg:18px; --r-md:12px; --r-sm:8px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1211; --surface:#17201d; --raised:#1b2522; --line:#2b3633; --line-soft:#232d2a;
+  --fg:#ecebe7; --muted:#a3aaa7; --faint:#7f8784; --sand-soft:#24302c; --ink:#b8d0c8;
+  --btn:#c7bfb4; --btn-fg:#16201d; --s1:#2f95c4; --s2:#cf763a;
+  --good:#74c595; --good-soft:#1c3226; --warn:#e3a94a; --warn-soft:#3a2c14; --crit:#f2877d; --crit-soft:#3a1f1c;
+  --neutral:#b3bab7; --neutral-soft:#262e2c; --club:#d8c3a0; --club-soft:#33291c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1211; --surface:#17201d; --raised:#1b2522; --line:#2b3633; --line-soft:#232d2a;
+  --fg:#ecebe7; --muted:#a3aaa7; --faint:#7f8784; --sand-soft:#24302c; --ink:#b8d0c8;
+  --btn:#c7bfb4; --btn-fg:#16201d; --s1:#2f95c4; --s2:#cf763a;
+  --good:#74c595; --good-soft:#1c3226; --warn:#e3a94a; --warn-soft:#3a2c14; --crit:#f2877d; --crit-soft:#3a1f1c;
+  --neutral:#b3bab7; --neutral-soft:#262e2c; --club:#d8c3a0; --club-soft:#33291c; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+.shell{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100%}
+.side{background:#2a423d;color:#fff;padding:22px 16px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+.side .logo{height:40px;width:auto;color:#fff;display:block}
+.side .prod{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c7bfb4;font-weight:600;margin-top:10px}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{border:0;background:none;color:rgba(255,255,255,.78);text-align:left;padding:10px 12px;border-radius:10px;display:flex;align-items:center;gap:10px;font-weight:500}
+.nav button svg{width:18px;height:18px;flex:none}
+.nav button:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav button[aria-current="page"]{background:#c7bfb4;color:#1d2e2a;font-weight:600}
+.nav .badge{margin-left:auto;font-size:11px;background:rgba(255,255,255,.16);border-radius:999px;padding:1px 8px}
+.nav button[aria-current="page"] .badge{background:#2a423d;color:#fff}
+.side .foot{margin-top:auto;font-size:12px;color:rgba(255,255,255,.65);border-top:1px solid rgba(255,255,255,.14);padding-top:14px}
+
+.main{min-width:0;padding-block:24px 48px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.top h1{font-size:24px;font-weight:700}
+.top .sub{color:var(--muted);font-size:13px;margin-top:2px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select,.search{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:500}
+.search{min-width:220px}
+.sample{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:3px 10px}
+
+.view[hidden]{display:none!important}
+.view{display:flex;flex-direction:column;gap:20px}
+.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0;text-align:left}
+button.tile:hover{border-color:var(--sand)}
+.tile .k{font-size:12px;color:var(--muted);font-weight:500}
+.tile .v{font-size:24px;font-weight:600;line-height:1.15}
+.tile .d{font-size:12px;color:var(--muted)}
+.tile .d b{font-weight:600;color:var(--fg)}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.card-h h2{font-size:15px;font-weight:600}
+.card-h p{font-size:12px;color:var(--muted);margin-top:2px}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:16px;height:0;border-top:2.5px solid;display:inline-block}
+.chartbox{position:relative}
+.chartbox svg{width:100%;height:auto;display:block;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.45;white-space:nowrap;transform:translate(-50%,-100%);opacity:0;transition:opacity .1s;z-index:3}
+.tip.on{opacity:1}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.insight{background:var(--raised);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:12px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.insight svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--warn)}
+
+.funnel{display:flex;flex-direction:column;gap:10px}
+.fstep{display:grid;grid-template-columns:118px minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:13px}
+.fstep .lab{color:var(--muted);font-weight:500}
+.fbar{height:22px;background:var(--line-soft);border-radius:0 6px 6px 0;position:relative;overflow:hidden}
+.fbar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink);border-radius:0 4px 4px 0}
+.fbar.pending{background:repeating-linear-gradient(135deg,var(--line-soft) 0 6px,transparent 6px 12px)}
+.fstep .val{text-align:right;font-weight:600}
+.fstep .val span{display:block;font-size:11px;color:var(--muted);font-weight:500}
+
+.alertbar{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--crit-soft);color:var(--crit);border-radius:var(--r-md);padding:12px 16px;font-size:13px;flex-wrap:wrap}
+.alertbar b{font-weight:600}
+.link{border:0;background:none;color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:0}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th.r,td.r{text-align:right}
+td{padding:10px 12px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--raised)}
+.tablewrap{overflow-x:auto;margin:0 -18px;padding:0 6px}
+.who b{display:block;font-weight:600}
+.who span{font-size:12px;color:var(--muted)}
+.prog{display:flex;align-items:center;gap:8px;min-width:120px}
+.prog .bar{flex:1;height:6px;background:var(--line-soft);border-radius:3px;overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--ink);border-radius:3px}
+.prog span{font-size:12px;color:var(--muted);width:44px}
+
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px 3px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill svg{width:12px;height:12px}
+.st-ativo{background:var(--good-soft);color:var(--good)}
+.st-risco{background:var(--warn-soft);color:var(--warn)}
+.st-sumido{background:var(--crit-soft);color:var(--crit)}
+.st-naoentrou{background:var(--neutral-soft);color:var(--neutral)}
+.st-concluiu{background:var(--sand-soft);color:var(--ink)}
+.st-naoconcluiu{background:var(--neutral-soft);color:var(--neutral)}
+.st-clube{background:var(--club-soft);color:var(--club)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.fchip b{font-weight:600}
+.fchip[aria-pressed="true"]{background:var(--btn);color:var(--btn-fg);border-color:var(--btn)}
+.toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{border:0;background:var(--btn);color:var(--btn-fg);border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px;display:inline-flex;gap:8px;align-items:center}
+.btn.ghost{background:var(--sand-soft);color:var(--fg)}
+.pager{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);gap:12px;flex-wrap:wrap}
+.pager div{display:flex;gap:6px}
+.pager button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 12px;font-size:12px}
+.pager button[disabled]{opacity:.4;cursor:default}
+
+/* receita */
+.inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.inputs.sim{grid-template-columns:repeat(5,minmax(0,1fr))}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:12px;color:var(--muted);font-weight:500}
+.field input{border:1px solid var(--line);background:var(--raised);border-radius:10px;padding:9px 12px;font-size:15px;font-weight:600;width:100%}
+.simout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.simout div{background:var(--raised);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:12px 14px}
+.simout span{display:block;font-size:12px;color:var(--muted)}
+.simout b{font-size:20px;font-weight:600}
+.simout em{font-style:normal;display:block;font-size:12px;color:var(--muted)}
+tr.total td{font-weight:700;border-bottom:0}
+tr.minus td{color:var(--muted)}
+@media (max-width:1180px){.inputs.sim{grid-template-columns:repeat(3,minmax(0,1fr))}.simout{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.inputs,.inputs.sim{grid-template-columns:minmax(0,1fr)}}
+
+/* automations */
+.rules{display:flex;flex-direction:column;gap:12px}
+.rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 18px}
+.rule .when{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rule h3{font-size:15px;font-weight:600}
+.rule .msg{background:var(--raised);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:10px 12px;font-size:13px;color:var(--fg);margin-top:10px;max-width:68ch}
+.rule .meta{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap}
+.rule .meta b{color:var(--fg);font-weight:600}
+.switch{width:44px;height:26px;border-radius:999px;border:0;background:var(--line);position:relative;flex:none;transition:background .15s}
+.switch::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch[aria-checked="true"]{background:var(--good)}
+.switch[aria-checked="true"]::after{transform:translateX(18px)}
+.chan{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,16,14,.4);z-index:20}
+.scrim[hidden]{display:none!important}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--surface);z-index:21;box-shadow:-20px 0 50px rgba(0,0,0,.2);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px);transform:translateX(100%);transition:transform .2s}
+.drawer.open{transform:none}
+.dh{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dh h2{font-size:18px;font-weight:600}
+.dh p{font-size:12px;color:var(--muted)}
+.x{border:0;background:var(--sand-soft);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
+.db{padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kv div{background:var(--raised);border-radius:10px;padding:10px}
+.kv span{display:block;font-size:11px;color:var(--muted)}
+.kv b{font-size:16px;font-weight:600}
+.sec{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.days{display:grid;grid-template-columns:repeat(21,1fr);gap:3px}
+.days i{height:22px;border-radius:4px;background:var(--line-soft)}
+.days i.a{background:var(--ink)}
+.days i.m{background:var(--crit-soft);outline:1px solid var(--crit);outline-offset:-1px}
+.days i.f{background:transparent;outline:1px dashed var(--line);outline-offset:-1px}
+.tl{display:flex;flex-direction:column}
+.tl div{display:grid;grid-template-columns:78px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line-soft);font-size:13px}
+.tl div:first-child{border-top:0}
+.tl span{color:var(--muted);font-size:12px}
+.suggest{background:var(--raised);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:12px;font-size:13px;white-space:pre-wrap}
+textarea{width:100%;border:1px solid var(--line);background:var(--raised);border-radius:10px;padding:10px;min-height:70px;resize:vertical;font-size:13px}
+.notes{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.notes div{background:var(--sand-soft);border-radius:8px;padding:8px 10px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(10px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;z-index:40;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:1180px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:820px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:sticky;top:0;height:auto;z-index:10;flex-direction:row;align-items:center;gap:12px;padding-block:10px;
+    padding-top:calc(10px + env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .side .logo{height:30px}
+  .side .prod,.side .foot{display:none}
+  .nav{flex-direction:row;overflow-x:auto;gap:2px;margin-left:auto;scrollbar-width:none}
+  .nav button{padding:8px 10px;font-size:13px;white-space:nowrap}
+  .nav button svg,.nav .badge{display:none}
+  .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .search{min-width:0;flex:1}
+  .fstep{grid-template-columns:92px minmax(0,1fr) 78px}
+  .rule{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){.side .brandbox{display:none}.nav{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.drawer,.toast,.switch,.switch::after{transition:none}}
+</style>
+
+<div class="shell">
+  <aside class="side">
+    <div class="brandbox">
+      <span class="logo-slot"></span>
+      <div class="prod">Painel Coração Forte</div>
+    </div>
+    <nav class="nav" aria-label="Seções">
+      <button data-view="geral" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V10M10 19V5M16 19v-6M22 19H2"/></svg>Visão geral</button>
+      <button data-view="pessoas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 15c2.8 0 5 1.4 5 4.5"/></svg>Participantes<span class="badge num" id="navCount"></span></button>
+      <button data-view="auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 10h8"/></svg>Automações</button>
+      <button data-view="receita"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></svg>Receita</button>
+      <button data-view="turmas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Turmas</button>
+    </nav>
+    <div class="foot">Dados de exemplo gerados para o protótipo. Nenhuma pessoa real.</div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div>
+        <h1 id="title">Visão geral</h1>
+        <p class="sub" id="subtitle"></p>
+      </div>
+      <div class="controls">
+        <span class="sample">Dados de exemplo</span>
+        <label for="cohortSel" class="sub" style="margin:0">Turma</label>
+        <select id="cohortSel"></select>
+      </div>
+    </div>
+
+    <!-- VISÃO GERAL -->
+    <section class="view" data-v="geral">
+      <div class="tiles" id="tiles"></div>
+      <div class="alertbar" id="alertbar" hidden></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h">
+            <div><h2>Participantes ativos por dia</h2><p>% de quem entrou que fez check-in em cada dia do desafio</p></div>
+            <div class="legend"><span><i style="border-color:var(--s1)"></i><span id="lgA">Esta turma</span></span><span><i style="border-color:var(--s2);border-top-style:dashed"></i>Média das turmas concluídas</span></div>
+          </div>
+          <div class="chartbox" id="retBox"><svg id="ret" viewBox="0 0 640 260" role="img" aria-label="Curva de participantes ativos por dia"></svg><div class="tip" id="retTip"></div></div>
+          <div class="insight" id="insight"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><h2>Funil da turma</h2><p>Da compra à assinatura do Clube</p></div></div>
+          <div class="funnel" id="funnel"></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><div><h2>Origem das vendas</h2><p>Por onde os compradores desta turma chegaram</p></div></div>
+          <div class="tablewrap"><table><thead><tr><th>Origem</th><th class="r">Compras</th><th class="r">Entraram</th><th class="r">Ativos hoje</th><th class="r">Receita</th></tr></thead><tbody id="origins"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><h2>Página de vendas</h2><p>Período de vendas da turma</p></div></div>
+          <div class="funnel" id="sales"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARTICIPANTES -->
+    <section class="view" data-v="pessoas" hidden>
+      <div class="card">
+        <div class="toolbar">
+          <div class="filters" id="filters"></div>
+        </div>
+        <div class="toolbar">
+          <input class="search" id="search" type="search" placeholder="Buscar por nome ou final do WhatsApp" aria-label="Buscar participante">
+          <div class="controls">
+            <select id="teamSel" aria-label="Filtrar por time"></select>
+            <button class="btn ghost" id="copyList">Copiar lista para WhatsApp</button>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Participante</th><th>Status</th><th>Progresso</th><th class="r">Pontos</th><th class="r">Sequência</th><th>Último check-in</th><th>Time</th><th>Origem</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="pager" id="pager"></div>
+      </div>
+    </section>
+
+    <!-- AUTOMAÇÕES -->
+    <section class="view" data-v="auto" hidden>
+      <p class="sub" style="margin-top:-8px">Mensagens disparadas sozinhas conforme o status de cada pessoa. Números da turma selecionada.</p>
+      <div class="rules" id="rules"></div>
+    </section>
+
+    <!-- RECEITA -->
+    <section class="view" data-v="receita" hidden>
+      <div class="card">
+        <div class="card-h"><div><h2>Custos da turma</h2><p>Ajuste para ver a receita líquida. Os valores ficam só nesta tela.</p></div></div>
+        <div class="inputs">
+          <div class="field"><label for="feeIn">Taxa da plataforma de pagamento (%)</label><input id="feeIn" type="number" min="0" max="30" step="0.1" value="10" class="num"></div>
+          <div class="field"><label for="adsIn">Investimento em tráfego pago na turma (R$)</label><input id="adsIn" type="number" min="0" step="50" class="num"></div>
+        </div>
+        <p class="sub" style="font-size:12px">A taxa varia por plataforma e contrato (Hotmart, Kiwify, Eduzz). Use o percentual do seu.</p>
+      </div>
+      <div class="tiles" id="revTiles"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h">
+            <div><h2>Receita bruta por turma</h2><p>Ingresso e order bump, em reais</p></div>
+            <div class="legend"><span><i style="border-color:var(--s1);border-top-width:8px"></i>Ingresso R$ 47</span><span><i style="border-color:var(--s2);border-top-width:8px"></i>Order bump R$ 17</span></div>
+          </div>
+          <div class="chartbox" id="revBox"><svg id="revChart" viewBox="0 0 640 260" role="img" aria-label="Receita bruta por turma"></svg><div class="tip" id="revTip"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><h2>De onde vem o dinheiro</h2><p id="compSub"></p></div></div>
+          <div class="tablewrap"><table><thead><tr><th>Item</th><th class="r">Qtd.</th><th class="r">Valor</th><th class="r">Total</th></tr></thead><tbody id="revComp"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div><h2>Simulador de turma</h2><p>Teste preço, volume e custos antes de abrir a próxima turma</p></div></div>
+        <div class="inputs sim">
+          <div class="field"><label for="simPrice">Preço (R$)</label><input id="simPrice" type="number" min="1" value="47" class="num"></div>
+          <div class="field"><label for="simBuyers">Compradores</label><input id="simBuyers" type="number" min="0" value="600" class="num"></div>
+          <div class="field"><label for="simBump">Order bump (%)</label><input id="simBump" type="number" min="0" max="100" value="28" class="num"></div>
+          <div class="field"><label for="simClub">Concluintes que assinam o Clube (%)</label><input id="simClub" type="number" min="0" max="100" value="28" class="num"></div>
+          <div class="field"><label for="simAds">Tráfego pago (R$)</label><input id="simAds" type="number" min="0" step="100" value="4000" class="num"></div>
+        </div>
+        <div class="simout" id="simOut"></div>
+      </div>
+    </section>
+
+    <!-- TURMAS -->
+    <section class="view" data-v="turmas" hidden>
+      <div class="tiles" id="clubTiles" style="grid-template-columns:repeat(4,minmax(0,1fr))"></div>
+      <div class="card">
+        <div class="card-h"><div><h2>Todas as turmas</h2><p>Clique numa turma para abrir a visão geral dela</p></div></div>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Turma</th><th>Início</th><th>Situação</th><th class="r">Compradores</th><th class="r">Entraram</th><th class="r">Ativos no dia 7</th><th class="r">Concluíram</th><th class="r">Clube</th><th class="r">Receita</th></tr></thead>
+          <tbody id="cohortRows"></tbody>
+        </table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Detalhe do participante" aria-hidden="true">
+  <div class="dh"><div><h2 id="dName"></h2><p id="dSub"></p></div><button class="x" id="dClose" aria-label="Fechar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="db" id="dBody"></div>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<template id="logoTpl"><svg class="logo" viewBox="60 100 950 235" role="img" aria-label="Dra. Helia Beatriz, Cardiologista"><g><path fill="currentColor" d="M758.37,195.35c0-3.44,2.71-6.22,6.37-6.22,1.57,0,3.01.52,4.08,1.42l-1.25,1.46c-.82-.64-1.72-.92-2.67-.92-2.5,0-4.26,1.94-4.26,4.26s1.76,4.3,4.13,4.3c1.18,0,2.26-.43,3.05-1.2l1.33,1.5c-1.12,1.03-2.65,1.66-4.39,1.66-3.66,0-6.37-2.79-6.37-6.26Z"/><path fill="currentColor" d="M782.81,189.32h2.06l5.46,12.11h-2.21l-.95-2.09h-6.65l-.95,2.09h-2.21l5.46-12.11ZM786.41,197.61l-1.38-3.14c-.52-1.2-1.2-2.82-1.2-2.82,0,0-.65,1.61-1.2,2.82l-1.38,3.14h5.16Z"/><path fill="currentColor" d="M799.3,189.32h5.12c3.48,0,5.33,2.07,5.33,4.64,0,1.63-.88,3.16-2.49,3.93l2.67,3.55h-2.52l-2.11-2.95c-.34.06-.71.09-1.08.09h-2.75v2.86h-2.17v-12.11ZM804.51,196.7c1.74,0,2.95-1.23,2.95-2.75s-1.21-2.79-2.93-2.79h-3.07v5.53h3.05Z"/><path fill="currentColor" d="M819.24,189.32h4.75c3.94,0,6.43,2.75,6.43,6.06s-2.49,6.06-6.43,6.06h-4.75v-12.11ZM823.9,199.56c2.56,0,4.26-1.78,4.26-4.19s-1.7-4.19-4.26-4.19h-2.49v8.37h2.49Z"/><path fill="currentColor" d="M840.02,189.32h2.17v12.11h-2.17v-12.11Z"/><path fill="currentColor" d="M851.78,195.37c0-3.46,2.71-6.24,6.37-6.24s6.37,2.79,6.37,6.24-2.71,6.24-6.37,6.24-6.37-2.77-6.37-6.24ZM862.26,195.37c0-2.34-1.76-4.28-4.09-4.28s-4.13,1.94-4.13,4.28,1.76,4.28,4.13,4.28,4.09-1.94,4.09-4.28Z"/><path fill="currentColor" d="M874.12,189.32h2.17v10.24h7.25v1.87h-9.42v-12.11Z"/><path fill="currentColor" d="M892.06,195.37c0-3.46,2.71-6.24,6.37-6.24s6.38,2.79,6.38,6.24-2.71,6.24-6.38,6.24-6.37-2.77-6.37-6.24ZM902.55,195.37c0-2.34-1.76-4.28-4.09-4.28s-4.13,1.94-4.13,4.28,1.76,4.28,4.13,4.28,4.09-1.94,4.09-4.28Z"/><path fill="currentColor" d="M913.94,195.37c0-3.46,2.71-6.24,6.37-6.24,1.63,0,3.05.56,4.15,1.46l-1.29,1.48c-.82-.69-1.76-.97-2.84-.97-2.37,0-4.13,1.94-4.13,4.28s1.76,4.28,4.13,4.28c1.27,0,2.39-.58,3.12-1.48v-2.09h-2.22v-1.81h4.32v4.73c-1.08,1.63-3.05,2.62-5.23,2.62-3.66,0-6.37-2.77-6.37-6.24Z"/><path fill="currentColor" d="M935.51,189.32h2.17v12.11h-2.17v-12.11Z"/><path fill="currentColor" d="M947.25,199.88l.84-1.65c.99.8,2.21,1.42,4.02,1.42,1.31,0,2.62-.62,2.62-1.72s-1.25-1.44-2.49-1.74c-2.22-.52-4.52-1.23-4.52-3.65,0-2.26,2.15-3.42,4.39-3.42,1.74,0,3.08.49,4.3,1.31l-.84,1.66c-1.08-.69-2.21-1.01-3.46-1.01-.8,0-2.19.34-2.19,1.44,0,.97,1.08,1.29,2.54,1.65,2.3.54,4.52,1.4,4.52,3.76,0,2.54-2.5,3.68-4.9,3.68-2.64,0-4.04-.99-4.84-1.74Z"/><path fill="currentColor" d="M969.89,191.18h-4.26v-1.87h10.69v1.87h-4.26v10.24h-2.17v-10.24Z"/><path fill="currentColor" d="M988.38,189.32h2.06l5.46,12.11h-2.21l-.95-2.09h-6.65l-.95,2.09h-2.21l5.46-12.11ZM991.99,197.61l-1.38-3.14c-.52-1.2-1.2-2.82-1.2-2.82,0,0-.65,1.61-1.2,2.82l-1.38,3.14h5.16Z"/><path fill="currentColor" d="M758.22,220.35c0-1.2.64-2.45,2.04-3.33-.45-.71-.77-1.46-.77-2.28,0-1.46,1.08-3.18,3.44-3.18,1.1,0,2.5.34,3.4,2.34l-1.7,1.08c-.32-.92-.93-1.55-1.66-1.55-.82,0-1.35.6-1.35,1.31,0,.84.54,1.72,1.76,2.95l2.37,2.39c.17-.26.36-.67.36-1.4h1.96c0,1.12-.37,2.28-.82,2.84l1.27,1.27-1.29,1.31-1.27-1.23c-1.01.77-2.34,1.18-3.59,1.18-2.15,0-4.15-1.18-4.15-3.7ZM764.5,221.53l-3.1-3.07c-.75.47-1.08,1.12-1.08,1.76,0,1.1.94,1.89,2.26,1.89.71,0,1.37-.22,1.93-.58Z"/><path fill="currentColor" d="M758.84,234.18h2.17v12.11h-2.17v-12.11Z"/><path fill="currentColor" d="M771.07,234.18h2.21l4.34,5.94c.86,1.18,1.85,2.86,1.85,2.86v-8.8h2.17v12.11h-2.24l-4.13-5.65c-1.05-1.44-2.02-3.08-2.02-3.08v8.73h-2.17v-12.11Z"/><path fill="currentColor" d="M795.07,236.05h-4.26v-1.87h10.69v1.87h-4.26v10.24h-2.17v-10.24Z"/><path fill="currentColor" d="M810.68,234.18h9.4v1.87h-7.23v2.95h6.82v1.85h-6.82v3.57h7.5v1.87h-9.66v-12.11Z"/><path fill="currentColor" d="M829.56,234.18h2.21l4.34,5.94c.86,1.18,1.85,2.86,1.85,2.86v-8.8h2.17v12.11h-2.24l-4.13-5.65c-1.05-1.44-2.02-3.08-2.02-3.08v8.73h-2.17v-12.11Z"/><path fill="currentColor" d="M849.7,244.75l.84-1.65c.99.8,2.21,1.42,4.02,1.42,1.31,0,2.62-.62,2.62-1.72s-1.25-1.44-2.49-1.74c-2.22-.52-4.52-1.23-4.52-3.65,0-2.26,2.15-3.42,4.39-3.42,1.74,0,3.08.49,4.3,1.31l-.84,1.66c-1.08-.69-2.21-1.01-3.46-1.01-.8,0-2.19.34-2.19,1.44,0,.97,1.08,1.29,2.54,1.65,2.3.54,4.52,1.4,4.52,3.76,0,2.54-2.51,3.68-4.9,3.68-2.63,0-4.04-.99-4.84-1.74Z"/><path fill="currentColor" d="M869.07,234.18h2.17v12.11h-2.17v-12.11Z"/><path fill="currentColor" d="M880.21,234.18h2.21l2.9,6.93c.36.88.95,2.71.95,2.71,0,0,.6-1.83.95-2.71l2.9-6.93h2.22l-5.01,12.15h-2.11l-5.01-12.15Z"/><path fill="currentColor" d="M901.32,234.18h2.17v12.11h-2.17v-12.11Z"/><path fill="currentColor" d="M913.06,244.75l.84-1.65c.99.8,2.21,1.42,4.02,1.42,1.31,0,2.62-.62,2.62-1.72s-1.25-1.44-2.49-1.74c-2.22-.52-4.52-1.23-4.52-3.65,0-2.26,2.15-3.42,4.39-3.42,1.74,0,3.08.49,4.3,1.31l-.84,1.66c-1.08-.69-2.21-1.01-3.46-1.01-.8,0-2.19.34-2.19,1.44,0,.97,1.08,1.29,2.54,1.65,2.3.54,4.52,1.4,4.52,3.76,0,2.54-2.5,3.68-4.9,3.68-2.64,0-4.04-.99-4.84-1.74Z"/><path fill="currentColor" d="M935.7,236.05h-4.26v-1.87h10.69v1.87h-4.26v10.24h-2.17v-10.24Z"/><path fill="currentColor" d="M954.19,234.18h2.06l5.46,12.11h-2.21l-.95-2.09h-6.65l-.95,2.09h-2.21l5.46-12.11ZM957.8,242.48l-1.38-3.14c-.52-1.2-1.2-2.82-1.2-2.82,0,0-.65,1.61-1.2,2.82l-1.38,3.14h5.16Z"/></g><path fill="currentColor" d="M716.07,211.75h2.17v12.11h-2.17v-12.11Z"/><g><g><path fill="currentColor" d="M570.85,166.55c.53.47,1.24.32,2.13-.47.79-.68,2.39-2.5,4.82-5.45,2.21-2.74,3.29-4.82,3.24-6.24-.05-1.37-1.24-2.05-3.55-2.05-1.16,0-2.47,1.08-3.95,3.24-1.37,2.05-2.37,4.18-3,6.39-.63,2.42-.53,3.95.32,4.58Z"/><path fill="currentColor" d="M620.02,166.63c1,0,1.86-.38,2.57-1.14.71-.76,1.07-1.7,1.07-2.8s-.36-1.96-1.07-2.72c-.71-.76-1.57-1.14-2.57-1.14-.95,0-1.76.38-2.45,1.14-.68.76-1.03,1.67-1.03,2.72,0,1.11.34,2.04,1.03,2.8.68.76,1.5,1.14,2.45,1.14Z"/><path fill="currentColor" d="M541.5,180.9c.09-.65-.36-1.24-1.01-1.34-.77-.12-1.58-.22-2.43-.3-.62-.06-1.23-.11-1.82-.14-.63-.04-1.16.42-1.23,1.05-.21,1.82-.48,4.27-.79,7.15-2.95,27.96-2.13,19.09-2.13,34.5,0,9.15.73,14.36,2.2,15.63.73.68,1.55.97,2.44.86l.64-.07c.41-.04.71-.4.71-.8l-.07-10.1c-.22-16.31,1.59-33.07,3.49-46.43ZM663.91,177.69c-.37-.58-.86-.66-1.5-.24-.58.31-1.98,1.55-4.18,3.71-2.53,2.47-4.66,4.18-6.4,5.13-1.74,1-2.84,1.1-3.32.32-.37-.58-.61-1.79-.71-3.64-.11-1.78-.06-3.45.16-4.97,0-.21.03-.49.08-.86.47-2.22.49-3.69.07-4.42-.42-.73-1.78-1.62-4.08-2.67-.01-.01-.03-.03-.06-.03-.4-.16-.68-.28-.83-.38-10.1-6.81-11.37,12.13-23.68,18.71-1.95,1.03-3.21.89-3.78-.48-.58-1.43-.32-3.87.79-7.34,1.04-3.32,1.92-5.85,2.6-7.58.37-.89.16-1.78-.64-2.68-.73-.89-1.65-1.41-2.75-1.57-1.16-.17-1.98.18-2.46,1.02-1.19,2.02-2.1,4.05-2.74,6.1-.55,1.77-1.4,3.4-2.49,4.89-.07.1-.14.2-.21.31-2.43,3.26-4.66,5.8-6.71,7.65-2.06,1.89-4.01,3.11-5.85,3.63-1.21.37-2.26-.37-3.16-2.2-.83-1.79-1.4-4.42-1.65-7.89l-.37-3.74c-.01-.18.03-.38.14-.54l2.98-4.34c4.05-6.1,7.53-12.19,10.42-18.23,2.8-5.89,4.66-11,5.61-15.32.95-4.46.73-7.44-.62-8.91-2.01-2.27-4.29-2.25-6.88.07-2.63,2.37-5.7,7.19-9.23,14.45-3.15,6.52-5.34,13.34-6.55,20.45-.71,4.21-1,8.08-.88,11.65,0,.2-.07.4-.2.55-.42.47-2.54,3.19-2.95,3.67-2.05,2.41-4.55,4.49-7.5,6.23-2.8,1.64-5.21,2.49-7.26,2.53-2.16.06-3.23-.86-3.23-2.75,0-.96.25-2.1.76-3.43.3-.73,1.04-1.19,1.84-1.16h.4c2.58-.04,5.66-1.57,9.23-4.58,1-.89,1.77-1.89,2.29-2.99.58-1.27.66-2.4.24-3.4-.69-1.68-1.95-2.73-3.78-3.15-1.74-.42-3.64-.24-5.69.55-2.1.79-3.9,2.1-5.37,3.94-.58.71-1.1,1.41-1.58,2.12-.2.28-.56.41-.9.31-5.41-1.75-11.28-3.12-17.65-4.12-.42-.06-.73-.47-.66-.89,2.78-17.1,6.58-35.5,11.41-55.2,1.37-5.68,2.29-9.55,2.75-11.59.54-2.49.73-4.19.64-5.14,0-.79-.28-1.47-.86-2.05-1.06-1.1-2.37-1.74-3.95-1.89-1.62-.17-2.8.23-3.47,1.19-.37.52-1.34,4.83-2.92,12.93-1.47,7.37-3.11,16.08-4.89,26.14-2.06,11.64-3.87,23.23-5.42,34.77-.06.42-.44.72-.86.67-5.78-.58-11.46-.52-17-.64-12.31-.26-68.84,4.29-68.84,21.87,0,.89.31,1.68.95,2.36.64.64,1.29.95,1.98.95.73,0,1.2-.4,1.41-1.19.71-2.61,10.79-11.82,21.56-14.87.54-.14,1.06.27,1.03.83-.68,10.48-.68,18.89-.01,25.25.68,6.55,2.05,10.49,4.11,11.8.06.03.1.06.16.07,1.54.71,2.78.83,3.71.37.95-.48.99-1.24.16-2.29-1.48-1.91-2.32-6.21-2.53-12.95-.21-6.45.14-14.5,1.04-24.17.04-.37.3-.66.65-.75.76-.16,1.54-.3,2.33-.42,2.72-.44,14.45-3.24,37.34-2.75,4.41.09,9.12.2,15.38.94,12.16,1.43,18.91,3.89,19.91,3.94.05,0,.22.07.44.13.45.11.71.61.54,1.04-.3.76-.55,1.54-.73,2.3-.68,2.95-.48,5.42.64,7.43,1.16,2.1,3.08,3.39,5.76,3.87,2.16.31,4.79-.3,7.89-1.82,2.68-1.31,5.31-3.11,7.89-5.37,1.24-1.12,2.3-2.19,3.18-3.22.42-.52,1.26-.3,1.4.35v.03c1.06,5.37,3.13,8.87,6.24,10.49,2.99,1.68,6.18,1.16,9.55-1.58,1.16-.89,2.65-2.54,4.5-4.97.78-1.06,1.5-2.11,2.18-3.15.4-.6,1.32-.4,1.45.31s.31,1.35.55,1.98c.83,2.36,2.29,3.91,4.34,4.66,2.22.78,4.66.38,7.34-1.19,1.45-.88,2.85-2.03,4.19-3.46v.06c0,2.32.8,3.9,2.44,4.74,1.68.95,3.29.92,4.82-.08,1.47-.95,3.57-3.29,6.31-7.02l3.23-4.35.16,1.1c.11.9.24,1.58.4,2.06.79,3.21,2.25,5.15,4.35,5.83,1.95.69,4.18.18,6.71-1.5,2.16-1.47,4.32-3.33,6.47-5.61,2.49-2.47,3.46-4.05,2.92-4.73ZM590.49,169.86c1.48-12.51,5.21-22.92,11.21-31.18,1.37-1.89,2.16-2.6,2.37-2.13.16.42-.18,2.32-1.03,5.69-1.52,6.21-4.09,13.1-7.74,20.69-1.78,3.73-3.08,6.26-3.85,7.57l-1.19,1.89.23-2.53ZM567.96,178.73c1.37-1.78,2.75-3.02,4.15-3.73,1.58-.79,2.39-.92,2.44-.4.11.47-.49,1.28-1.81,2.44-1.27,1.09-2.74,1.82-4.43,2.2-.3.07-.54-.27-.35-.52ZM639.68,179.03c-2.32,2.95-4.11,5.13-5.37,6.55-3.42,3.78-3.74,2.74-.95-3.16,1.1-2.36,2.47-4.52,4.11-6.47,1.47-1.79,2.75-2.89,3.86-3.32,1.21-.42,1.82.08,1.82,1.5,0,.27-1.16,1.91-3.47,4.9ZM492.62,120.61c.99-4.42,1.62-7.31,1.89-8.68.37-1.78.47-2.99.31-3.63-.16-.48-.58-.92-1.26-1.34-1.85-1.37-3.37-1.5-4.59-.4-1.26,1.21-2.44,4.29-3.54,9.23-1.06,4.42-2.43,12.07-4.11,22.97-1.7,11.08-3.06,21.81-3.96,31.24-.06.62.5,1.1,1.11.96,1.54-.36,3.22-.69,4.78-.79.44-.03.81-.35.86-.79,1.85-16.29,4.69-32.56,8.51-48.78Z"/></g><g><path fill="currentColor" d="M608.74,268.35c1.06,0,1.97-.4,2.72-1.21.75-.81,1.13-1.8,1.13-2.97s-.38-2.08-1.13-2.89c-.75-.81-1.66-1.21-2.72-1.21-1,0-1.87.41-2.59,1.21-.72.81-1.09,1.77-1.09,2.89,0,1.17.36,2.16,1.09,2.97.72.81,1.59,1.21,2.59,1.21Z"/><path fill="currentColor" d="M417.83,226.81c-.18-.45-.63-.9-1.35-1.35-1.95-1.33-3.56-1.45-4.85-.33-3.78,3.29-6.31,22.81-7.64,33.68-.07.6.43,1.11,1.03,1.05l5.69-.55c.42-.04.77-.37.84-.79,2.97-17.2,6.65-30.69,6.27-31.72ZM663.51,268.35c-.45-.49-.9-.64-1.35-.42-1.02.51-1.59,1.71-1.72,2.02-.03.06-.04.1-.09.15-.75,1.12-9.53,13.87-15.68,17.19-1.26.67-3.67,1.95-7.08,2.32-3.43.37-6.3-.33-8.15-.99-.6-.21-.79-.98-.36-1.45.97-1.05,2.87-2.8,5.68-5.26,3.73-3.29,6.15-5.49,7.27-6.61,1.39-1.45,2.14-2.53,2.26-3.26.06-.55-.36-1.26-1.26-2.1-1.72-1.95-3.65-1.92-5.78.09-1.89,1.68-3.34,2.65-4.34,2.93-.96.33-1.65,0-2.1-1-.84-1.84-2.35-2.62-4.52-2.35-2.07.28-3.97,1.32-5.69,3.1-1.84,1.9-2.77,3.98-2.77,6.27,0,4.43-7.32,11.1-9.7,12.39-2.07,1.11-3.4.94-4.01-.51-.61-1.51-.34-4.1.84-7.78,1.11-3.52,2.04-6.2,2.75-8.04.39-.94.16-1.89-.67-2.84-.78-.94-1.75-1.5-2.92-1.66-1.23-.18-2.1.19-2.6,1.08-1.56,2.78-1.99,9.44-12.38,18.5-2.6,2.26-4.35,3.04-5.01,2.59-.34-.22.13-2.78,1.42-7.69,1.56-5.69-.37-8.53-5.78-8.53h-1.17c-.63,0-1.06-.61-.87-1.2l.45-1.41c1.33-4.07.04-6.49-3.85-7.27-2.07-.45-3.74.19-5.03,1.92-1.17,1.57-1.59,3.41-1.26,5.52.39,2.29,1.54,3.97,3.43,5.03,1.2.66-.48,4.5-.66,4.76-4.91,7.03-8.59,10.85-11.04,11.46-2.39.61-3.71-1.92-3.94-7.6-.22-4.91.61-10.52,2.51-16.82,1.18-3.89,2.89-8.45,5.1-13.69.13-.31.43-.54.78-.57.19-.01.37-.03.55-.04,13-1.11,35-3.1,35.84-3.61.39-.21.51-.72.34-1.5-.12-.73-.42-1.32-.93-1.77-.72-.61-3.32-.88-7.78-.84-3.29.09-15.63,1.02-24.46,1.81-.69.06-1.19-.65-.89-1.27.38-.8.75-1.63,1.14-2.45,2.07-4.4,3.16-7.24,3.26-8.53.12-1.51-.66-2.59-2.33-3.26-1.8-1.06-3.26-1-4.43.16-1.18,1.06-2.54,3.68-4.1,7.87-1.06,2.75-2.04,5.39-2.93,7.95-.1.34-.4.57-.76.6-13.14,1.02-61.53,2.32-64.32,1.45-1.39-.49-2.17-.39-2.35.33-.16.73.34,1.74,1.51,3.02.96,1,2.99,1.78,6.11,2.33,1.21.25,43.47-1.18,56.56-1.69.61-.03,1.06.57.88,1.17-1.45,4.68-2.6,9.01-3.41,12.94-.41,1.96-.72,3.81-.96,5.54-.3,2.15-1.34,4.13-2.93,5.61-.42.39-.88.83-1.37,1.31-2.68,2.62-4.94,4.43-6.78,5.43-1.84,1.06-3.01,1.17-3.5.34-.4-.61-.64-1.9-.76-3.86-.1-1.89-.06-3.65.16-5.27,0-.22.03-.52.09-.91.51-2.35.52-3.91.09-4.68-.45-.78-1.89-1.72-4.32-2.83-.01-.01-.04-.03-.07-.03-.42-.16-.72-.3-.88-.4-5.57-2.78-10.52.05-14.85,8.48l-.05.07c-.48.51-1.15,1.28-2,2.31-.72.96-1.29,1.68-1.68,2.18-2.17,2.56-4.82,4.76-7.95,6.6-2.95,1.74-5.52,2.63-7.69,2.68-2.29.06-3.43-.91-3.43-2.92,0-.98.25-2.15.77-3.5.29-.75,1.18-1.37,1.98-1.37h.42c2.74-.04,6-1.66,9.79-4.85,1.06-.94,1.87-2.01,2.42-3.17.61-1.35.7-2.54.25-3.61-.72-1.78-2.07-2.89-4.01-3.34-1.84-.45-3.85-.25-6.03.58-2.23.84-4.13,2.23-5.69,4.17-.75.91-1.41,1.81-2.01,2.72-.34.52-.96.81-1.57.72h-.01c-2.84-.51-6.52-.39-11.04.33l-4.15.6c-.29.04-.58-.06-.78-.26l-1.27-1.27c-3.13-2.95-7.63-5.54-13.54-7.77-5.91-2.29-12.85-4.07-20.83-5.36l-.22-.03c-.9-.13-1.06-1.38-.22-1.75l.52-.22c5.87-2.57,11.18-6.36,15.98-11.39,4.62-4.85,8.17-10.24,10.62-16.15,2.51-6.14,3.52-11.99,3.01-17.57-.61-6.79-3.65-12.29-9.11-16.48-5.36-4.01-12.3-6.3-20.83-6.85-8.75-.61-18.11.72-28.03,4.01-5.24,1.74-10.46,4.04-15.64,6.94-4.91,2.74-9.17,5.64-12.81,8.69-3.68,3.13-6.21,5.97-7.6,8.54-1.51,2.68-1.51,4.73,0,6.18,1.23,1.35,2.39,1.84,3.52,1.51,1-.28,2.86-1.71,5.6-4.26,8.14-7.59,16.79-13.63,25.93-18.15,8.42-4.13,16.54-6.61,24.35-7.45,7.53-.84,13.74,0,18.65,2.51,5.13,2.56,8.17,6.58,9.13,12.05,1.06,5.85-.45,12.82-4.52,20.92-4.29,8.53-10.1,14.96-17.4,19.32-6.23,3.7-13.87,6.06-22.93,7.11,0,0-.09.01-.27.03,0,0-.51.06-1.02.1-6.38.62-12.54.76-12.54.76-5.58.13-7.14-.1-7.59.85-.5,1.06.77,2.71,1.84,3.86l1.8,1.8c.19.18.45.28.72.25l2.89-.21s.04-.01.07-.01c.33-.04.67-.1,1.05-.16-1.74,14.9-1.18,27.4,3.76,29.54,1.68.72,3.01.85,4.01.42,1.02-.45,1.09-1.2.25-2.26-2.47-3.13-3.73-6.76-.85-27.32.06-.45.45-.81.91-.82,11.36-.43,22.03.13,31.99,1.71,10.04,1.57,17.85,4,23.42,7.29.89.53,1.56.98,2.04,1.32.58.41.48,1.32-.18,1.58-.44.17-1.02.34-1.77.53-9.76,2.72-19.11,6.99-28.03,12.79-8.36,5.42-15.19,11.33-20.49,17.73-5.25,6.42-7.98,12.11-8.2,17.07-.28,5.34,2.53,9.01,8.44,10.95,3.74,1.12,8.84.64,15.31-1.42,6.7-2.12,13.27-5.36,19.75-9.7,10.86-7.26,18.48-14.81,22.84-22.67,3.79-6.81,4.7-13.12,2.69-18.95-.12-.35-.5-.53-.85-.42l-2.45.8c-.32.11-.5.44-.43.77.7,3.26.12,7-1.72,11.18-2.07,4.85-5.57,9.76-10.53,14.72-4.97,4.91-10.62,9.17-16.98,12.79-6.81,3.8-13.53,6.33-20.16,7.62-5.3,1-8.71.67-10.21-1-1.57-1.62-1.32-4.64.75-9.04,3.68-7.81,10.3-15.31,19.83-22.51,19.02-14.36,43.36-20.25,51.96-20.25h.94c-.36.9-.64,1.78-.87,2.68-.72,3.13-.49,5.75.67,7.87,1.23,2.23,3.26,3.59,6.11,4.1,2.29.33,5.07-.31,8.37-1.93,2.84-1.39,5.63-3.29,8.37-5.69.49-.43.94-.87,1.38-1.3-.07.57-.12,1.12-.12,1.63,0,2.45.87,4.13,2.59,5.03,1.78,1,3.49.97,5.1-.09,1.56-1,3.8-3.49,6.69-7.44l3.44-4.61.16,1.17c.1.96.25,1.68.42,2.18.84,3.4,2.36,5.46,4.59,6.18,2.07.73,4.43.19,7.11-1.59,2.29-1.56,4.58-3.53,6.87-5.94.3-.28.55-.57.81-.84.01,2.05.18,3.91.52,5.52.94,4.52,3.19,7.33,6.69,8.45,1.96.61,4,.25,6.11-1.09,2.12-1.33,4.25-3.56,6.36-6.69,2.23-3.34,3.59-5.75,4.32-7.2.4-.84,1.71-3.23,3.2-3.43.27-.03.51-.06.72-.07.69-.06,1.18.6.93,1.23-.16.37-.37.82-.64,1.36-1.62,3.23-2.08,6.14-1.42,8.69.67,2.62,2.32,4.32,4.94,5.1,3.29.96,7-.64,11.13-4.76.98-1.03,2.02-2.23,3.09-3.58.49-.62,1.47-.38,1.63.39.13.68.31,1.31.55,1.93.88,2.5,2.42,4.15,4.59,4.94,2.35.82,4.94.4,7.78-1.26,9.05-5.33,14.16-22.4,17.99-18.82.78.72,1.78,1.33,3.01,1.84l.37.13c.66.24.81,1.09.28,1.56l-.57.48c-6.52,5.64-10.92,10.01-13.21,13.14-2.29,3.17-2.62,5.33-1,6.43.78.51,1.42.67,1.92.51.51-.16,1.12-.78,1.84-1.84,2.07-2.9,4.94-4.16,8.62-3.77,4.97.54,6.12.67,8.69.58,3.68-.12,6.42-1.54,7.83-2.27,6.54-3.43,15.01-15.8,16.83-19.56.88-1.84.94-3.11.16-3.85ZM496.99,281.43c1.51-2.02,3.04-3.43,4.59-4.2,1.68-.84,2.54-.97,2.59-.42.12.49-.52,1.36-1.92,2.59-1.42,1.23-3.1,2.02-5.03,2.41-.21.04-.36-.21-.24-.37ZM526.84,281.49c-2.45,3.13-4.34,5.43-5.69,6.94-3.62,4.01-3.95,2.9-1-3.35,1.17-2.5,2.62-4.79,4.35-6.85,1.56-1.9,2.93-3.07,4.1-3.52,1.27-.45,1.92.09,1.92,1.59,0,.28-1.23,2.02-3.68,5.19Z"/></g><g><path fill="currentColor" d="M469.47,164.29c-.21-.35-.52-.4-.89-.14-.35.18-1.19.92-2.51,2.22-1.51,1.47-2.78,2.5-3.81,3.06-1.04.59-1.71.66-1.99.18-.21-.34-.35-1.06-.42-2.16-.06-1.07-.03-2.06.1-2.98,0-.13.01-.3.04-.52.28-1.31.3-2.2.06-2.64-.25-.44-1.07-.97-2.46-1.61-.25-.08-.42-.17-.52-.23-3.28-1.64-6.17.16-8.68,5.38-.06.1-.1.2-.14.31-.14.14-.28.31-.42.49-1.33,1.62-2.74,3.06-4.25,4.29-1.51,1.23-2.46,1.71-2.84,1.45-.18-.13.08-1.57.8-4.34.89-3.22-.2-4.82-3.25-4.82h-1.37l.47-1.47c.76-2.29.03-3.66-2.17-4.11-1.16-.24-2.1.11-2.82,1.09-.66.89-.9,1.92-.71,3.12.21,1.28.86,2.23,1.93,2.82.07.03.2.07.27.18.11.18,0,.48-.11.61-.37.4-1.57-.34-3.09-.82-.72-.23-4.31-.61-4.41-.96-.06-.24.18-1.1.71-2.54,2.61-6.89,3.63-13.32,3.02-19.26-.56-5.73-2.56-10.59-5.99-14.59-3.43-4-7.99-6.76-13.7-8.3-5.87-1.61-12.5-1.75-19.87-.42-3.59.62-7.33,1.71-11.24,3.25-3.61,1.48-6.93,3.16-9.96,5.06-3.02,1.89-5.27,3.7-6.75,5.42-1.54,1.86-1.99,3.4-1.37,4.63.92,1.77,1.96,2.65,3.16,2.7,1.2,0,2.44-.86,3.73-2.56,3.46-4.53,8.02-8.19,13.7-11,5.34-2.64,10.96-4.21,16.85-4.72,5.89-.48,11.13.18,15.72,1.98,4.89,1.96,8.35,4.97,10.39,9.07,1.79,3.66,2.5,8.01,2.12,13.08-.34,5.1-1.77,10.59-4.25,16.48l-.75,1.84-3.4.2c-6.48.34-12.79,1.36-18.92,3.06-5.86,1.6-10.99,3.69-15.39,6.23.31-5.35.99-11.34,2.03-17.99,1.09-6.96,2.32-11.61,2.46-12.36.18-.97.24-1.65.14-2.03-.07-.25-.3-.49-.71-.75-1.14-.76-2.06-.82-2.8-.2-1.57,1.37-4.79,14.83-4.86,35.78-2.74,2.01-4.77,4.1-6.1,6.23-1.38,2.23-1.89,4.42-1.55,6.57.41,2.58,1.85,4.82,4.29,6.71,2.49,1.88,5.41,2.98,8.74,3.3,4.28.37,8.7-.56,13.26-2.8,4.48-2.2,8.78-5.52,12.93-9.96,4.22-4.53,7.96-9.88,11.24-16.06l1.6-3.06,2.98.14c2.02.13,3.59.31,4.72.56.99.2,1.65.18,2.01-.04.27-.14.56-.47.89-1,.38-.75.92-1.16,1.61-1.21.66-.1,1.02-.08,1.09.04.03.16-.14.61-.52,1.37-.92,1.82-1.19,3.46-.8,4.9.38,1.48,1.31,2.44,2.78,2.88,1.86.54,3.95-.35,6.28-2.68.37-.38.73-.8,1.12-1.26-.01.21-.03.41-.03.59,0,1.38.48,2.33,1.47,2.84,1,.56,1.96.55,2.87-.06.89-.56,2.15-1.96,3.78-4.19l1.93-2.6.1.66c.06.54.14.95.23,1.23.48,1.92,1.34,3.08,2.6,3.49,1.17.41,2.5.11,4.01-.9,1.3-.88,2.58-1.99,3.87-3.35,1.48-1.48,2.06-2.43,1.75-2.82ZM418.34,169.19c-.07.1-.13.18-.2.24-3.67,6.2-8.01,11.47-12.98,15.82-4.97,4.38-9.8,7.16-14.49,8.36-2.89.72-5.56.88-7.98.47-2.33-.41-4.11-1.29-5.34-2.64-1.26-1.36-1.69-3.01-1.33-4.96.45-2.36,1.92-4.7,4.45-7.03.31,4.74,1.19,7.48,2.64,8.22.92.4,1.65.48,2.22.23.56-.25.62-.68.14-1.27-1.1-1.17-1.62-4.48-1.55-9.91,4-2.71,8.98-5.03,14.95-6.93,6.2-1.96,12.71-3.23,19.5-3.83.03-.03.08-.06.14-.06.95-.16,1.4-.06,1.37.28-.03.3-.55,1.3-1.55,3.02ZM454.98,165.08c-1.38,1.77-2.46,3.08-3.21,3.93-2.05,2.26-2.25,1.64-.58-1.89.66-1.41,1.48-2.71,2.46-3.87.89-1.07,1.65-1.74,2.32-1.98.72-.25,1.09.04,1.09.89,0,.16-.69,1.13-2.08,2.92Z"/><path fill="currentColor" d="M469.01,170.38c0,.38.11.67.33.89.22.22.43.33.63.33.16,0,.4-.05.71-.15.28-.1.51-.31.69-.63.16-.26.24-.57.24-.92s-.09-.67-.27-.92-.48-.41-.79-.42c-.42,0-.78.19-1.08.6-.3.38-.45.78-.45,1.22Z"/></g></g><g><path fill="currentColor" d="M109.97,221.05c-11.28,4.58-20.27,12.61-24.06,23.94-.3.27-.89.64-1.22.65-.39.02-.75-.85-.81-1.41,1.35-15.19,12.4-26.56,26.04-32.56l-.04-52.69c-.01-19.69-14.13-26.24-24.53-26.97l-.8-.71c-.21-.19.66-.72.95-.74,38.59-2.23,36.97,21.94,36.97,25.29v51.88c15.4-3.09,29.01.41,43.49,5.86,7.24,2.51,15.05,5.83,22.7,3.39l.03-68.8c-11.58,7.74-23.5,19.13-23.51,19.14-.4.15-.98.28-1.3.21s-.35-1.06-.28-1.44c2.36-5.11,5.43-9.46,9.07-13.78,14.18-16.84,54.31-42.67,91.51-21.66,18.25,10.31,26.12,29.84,20.15,49.91-4.29,12.25-13.99,21.19-26.27,25.66,47.26,19.71,41.46,84.72-1.62,103.37-25.8,11.17-57.82.21-65.58-27.46-1.39-4.94-2.15-9.82-2.15-15.03v-40.08c-13.04,3.72-41.3-7.98-41.3-7.98-8.15-2.2-16.45-2.89-24.94-1.61l-.04,54.51c0,6.18-4.07,37.76-35,35.48-.4-.03-1.06-.66-1.03-1.01s.64-1.07,1-1.11c18.65-2.28,22.41-21.22,22.43-30.51l.13-53.75ZM251.41,212.14c-7.54-3.69-15.37-5.23-23.57-5.27-1.35,0-2.4-.8-2.51-2.03-.09-.99.73-2.33,2.03-2.52,8.3-1.2,16.57-.39,24.74,1.72,16.43-6.87,24.26-25.4,21.09-42.4-6.53-35.03-42.03-38.1-72.03-21.01l.02,127.8c0,63.3,87.16,46.05,76.93-19.94-2.45-15.82-12.26-29.29-26.69-36.35Z"/></g></svg></template>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+$$('.logo-slot').forEach(el=>{el.outerHTML=$('#logoTpl').innerHTML});
+const fmt=n=>Math.round(n).toLocaleString('pt-BR');
+const pct=(a,b)=>b?(a/b*100):0;
+const pctf=(a,b)=>pct(a,b).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+const brl=n=>'R$ '+(n>=10000?(n/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil':fmt(n));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ============================================================
+   CAMADA DE DADOS
+   No protótipo, os dados são gerados aqui. Na versão final, o dev troca
+   SampleSource por chamadas ao Supabase (views do arquivo schema.sql):
+     loadCohorts()      -> select * from v_cohort_summary
+     loadParticipants() -> select * from v_participant_status where cohort_id = ?
+     loadDaily(cohort)  -> select * from v_cohort_daily_active where cohort_id = ?
+   ============================================================ */
+const TODAY=new Date(2026,9,14);
+const PRICE=47, BUMP=17, CLUB=39;
+let seed=20261014; const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const FN=['Mariana','Ana','Juliana','Patrícia','Fernanda','Cláudia','Luciana','Renata','Sandra','Adriana','Márcia','Simone','Carla','Beatriz','Camila','Vanessa','Débora','Rosana','Eliane','Cristina','Carlos','José','Marcos','Paulo','Ricardo','Roberto','Eduardo','Fábio','Sérgio','André','Luiz','Rodrigo','Gustavo','Antônio','Marcelo','Helena','Regina','Silvia','Tatiane','Aline'];
+const LN=['Silva','Santos','Oliveira','Souza','Lima','Pereira','Costa','Ferreira','Almeida','Ribeiro','Carvalho','Gomes','Martins','Araújo','Barbosa','Rocha','Dias','Moreira','Nunes','Teixeira','Cardoso','Mendes','Freitas','Castro','Campos'];
+const DDD=['61','61','61','11','11','21','31','62','71','81','41','51','85','27','48'];
+const ORIG=[['Stories',.47],['Link da bio',.22],['Tráfego pago',.19],['Indicação',.07],['E-mail',.05]];
+const TEAMS=['Aorta','Ventrículo','Átrio','Válvula'];
+const COHORTS=[
+  {id:1,name:'Turma 1',start:new Date(2026,8,7),n:412},
+  {id:2,name:'Turma 2',start:new Date(2026,8,14),n:538},
+  {id:3,name:'Turma 3',start:new Date(2026,8,21),n:497},
+  {id:4,name:'Turma 4',start:new Date(2026,8,28),n:603},
+  {id:5,name:'Turma 5',start:new Date(2026,9,5),n:642},
+  {id:6,name:'Turma 6',start:new Date(2026,9,12),n:455},
+  {id:7,name:'Turma 7',start:new Date(2026,9,19),n:128}];
+COHORTS.forEach(c=>{c.day=Math.floor((TODAY-c.start)/864e5)+1; c.state=c.day<1?'vendas':c.day>21?'concluida':'andamento'; c.cur=Math.max(0,Math.min(21,c.day))});
+const dateOf=(c,d)=>{const x=new Date(c.start);x.setDate(x.getDate()+d-1);return x};
+const dmy=d=>d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+function hazard(d){return d<=1?.03:d<=3?.045:d===4?.1:d<=6?.04:d===7?.015:d<=9?.05:d<=13?.03:d===14?.012:.022}
+
+const SampleSource={
+  participants:{},
+  build(c){
+    if(this.participants[c.id])return this.participants[c.id];
+    const list=[];
+    for(let i=0;i<c.n;i++){
+      const r=rnd();let acc=0,orig=ORIG[0][0];for(const [o,w] of ORIG){acc+=w;if(r<acc){orig=o;break}}
+      const fn=pick(FN), ln=pick(LN);
+      const p={id:c.id*10000+i,cohort:c.id,name:fn+' '+ln,first:fn,phone:`(${pick(DDD)}) 9••••-${String(1000+Math.floor(rnd()*9000))}`,
+        team:TEAMS[i%4],origin:orig,bump:rnd()<.31,bought:new Date(c.start.getTime()-Math.floor(rnd()*7+1)*864e5),notes:[]};
+      const entered=c.state==='vendas'?false:rnd()<(orig==='Tráfego pago'?.84:.92);
+      p.entered=entered; p.days=[];
+      if(entered){
+        let drop=22;for(let d=1;d<=21;d++){if(rnd()<hazard(d)*(orig==='Indicação'?.6:1)){drop=d;break}}
+        p.drop=drop;
+        for(let d=1;d<=c.cur;d++){p.days[d]=d<drop&&rnd()<.9}
+      }
+      list.push(this.derive(p,c));
+    }
+    return this.participants[c.id]=list;
+  },
+  derive(p,c){
+    const D=c.cur;
+    const act=p.days.map((v,i)=>v?i:0).filter(Boolean);
+    p.last=act.length?act[act.length-1]:0;
+    let s=0;for(let d=p.last;d>=1&&p.days[d];d--)s++;p.streak=s;
+    p.points=act.length*92+(p.points0||0);
+    p.missions=Math.round(act.length*.86);
+    if(!p.entered)p.status=c.state==='vendas'?'naoentrou':'naoentrou';
+    else if(c.state==='concluida')p.status=p.drop>21&&p.last>=20?'concluiu':'naoconcluiu';
+    else{const gap=D-p.last;p.status=gap<=1?'ativo':gap<=3?'risco':'sumido'}
+    p.club=(p.status==='concluiu'&&((p.id*7)%100)<29)||(c.state==='andamento'&&false);
+    return p;
+  }
+};
+const loadCohorts=()=>COHORTS;
+const loadParticipants=c=>SampleSource.build(c);
+function loadDaily(c){const ps=loadParticipants(c).filter(p=>p.entered);const out=[];for(let d=1;d<=c.cur;d++)out[d]=pct(ps.filter(p=>p.days[d]).length,ps.length);return out}
+/* ============================================================ */
+
+const STATUS={
+  naoentrou:{l:'Não entrou',i:'<circle cx="12" cy="12" r="8"/>'},
+  ativo:{l:'Ativo',i:'<path d="M5 12l5 5L20 7"/>'},
+  risco:{l:'Em risco',i:'<path d="M12 8v5M12 16.5v.5"/><path d="M10.3 4.3L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/>'},
+  sumido:{l:'Sumido',i:'<path d="M6 6l12 12M18 6L6 18"/>'},
+  concluiu:{l:'Concluiu',i:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'},
+  naoconcluiu:{l:'Não concluiu',i:'<path d="M5 12h14"/>'},
+  clube:{l:'Clube',i:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'}};
+const pill=k=>`<span class="pill st-${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${STATUS[k].i}</svg>${STATUS[k].l}</span>`;
+
+const state={view:'geral',cohort:5,filter:'todos',team:'todos',q:'',page:0,auto:{}};
+const cohort=()=>COHORTS.find(c=>c.id===state.cohort);
+
+// cohort select
+$('#cohortSel').innerHTML=COHORTS.map(c=>`<option value="${c.id}">${c.name} · ${c.state==='vendas'?'começa '+dmy(c.start):c.state==='concluida'?'concluída':'dia '+c.day}</option>`).join('');
+$('#cohortSel').value=state.cohort;
+$('#cohortSel').addEventListener('change',e=>{state.cohort=+e.target.value;state.page=0;state.filter='todos';renderAll()});
+
+// nav
+const TITLES={geral:'Visão geral',pessoas:'Participantes',auto:'Automações',receita:'Receita',turmas:'Turmas'};
+$$('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+function go(v){state.view=v;$$('.nav button').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+  $$('.view').forEach(s=>s.hidden=s.dataset.v!==v);$('#title').textContent=TITLES[v];renderAll();window.scrollTo(0,0)}
+
+function stats(c){
+  const ps=loadParticipants(c), ent=ps.filter(p=>p.entered);
+  const by=k=>ps.filter(p=>p.status===k).length;
+  const daily=loadDaily(c);
+  return{ps,ent,n:ps.length,entered:ent.length,ativo:by('ativo'),risco:by('risco'),sumido:by('sumido'),naoentrou:by('naoentrou'),concluiu:by('concluiu'),naoconcluiu:by('naoconcluiu'),
+    club:ps.filter(p=>p.club).length,bumps:ps.filter(p=>p.bump).length,daily,
+    d7:c.cur>=7?ent.filter(p=>p.days[7]).length:null,d14:c.cur>=14?ent.filter(p=>p.days[14]).length:null,
+    rev:ps.length*PRICE+ps.filter(p=>p.bump).length*BUMP};
+}
+const avgCurve=(()=>{const done=COHORTS.filter(c=>c.state==='concluida');const out=[];for(let d=1;d<=21;d++){out[d]=done.reduce((a,c)=>a+loadDaily(c)[d],0)/done.length}return out})();
+
+function renderAll(){
+  const c=cohort(), S=stats(c);
+  $('#navCount').textContent=fmt(S.n);
+  $('#subtitle').textContent=c.state==='vendas'?`${c.name} · vendas abertas, começa em ${dmy(c.start)}`:c.state==='concluida'?`${c.name} · ${dmy(c.start)} a ${dmy(dateOf(c,21))} · concluída`:`${c.name} · começou em ${dmy(c.start)} · hoje é o dia ${c.day} de 21`;
+  if(state.view==='geral')renderGeral(c,S);
+  if(state.view==='pessoas')renderPessoas(c,S);
+  if(state.view==='auto')renderAuto(c,S);
+  if(state.view==='turmas')renderTurmas();
+  if(state.view==='receita')renderReceita(c,S);
+}
+
+/* ---------- VISÃO GERAL ---------- */
+function tile(k,v,d,go){return `<${go?'button':'div'} class="tile" ${go?`data-filter="${go}"`:''}><span class="k">${k}</span><span class="v num">${v}</span><span class="d">${d}</span></${go?'button':'div'}>`}
+function renderGeral(c,S){
+  const done=c.state==='concluida', sales=c.state==='vendas';
+  $('#tiles').innerHTML=[
+    tile('Compradores',fmt(S.n),`<b>${brl(S.rev)}</b> em vendas`),
+    tile('Entraram no app',sales?'—':fmt(S.entered),sales?'libera no dia 1':`<b>${pctf(S.entered,S.n)}</b> dos compradores`),
+    done?tile('Concluíram',fmt(S.concluiu),`<b>${pctf(S.concluiu,S.entered)}</b> de quem entrou`,'concluiu'):tile('Ativos hoje',sales?'—':fmt(S.ativo),sales?'—':`<b>${pctf(S.ativo,S.entered)}</b> de quem entrou`,'ativo'),
+    done?tile('Não concluíram',fmt(S.naoconcluiu),'pararam no meio','naoconcluiu'):tile('Em risco',sales?'—':fmt(S.risco),'2 a 3 dias sem check-in','risco'),
+    done?tile('Assinaram o Clube',fmt(S.club),`<b>${pctf(S.club,S.concluiu)}</b> de quem concluiu`,'clube'):tile('Sumidos',sales?'—':fmt(S.sumido),'4 dias ou mais sem check-in','sumido'),
+    tile('Order bump',pctf(S.bumps,S.n),`<b>${fmt(S.bumps)}</b> diários de pressão`)
+  ].join('');
+  $$('#tiles [data-filter]').forEach(b=>b.addEventListener('click',()=>{state.filter=b.dataset.filter;state.page=0;go('pessoas')}));
+  const ab=$('#alertbar');
+  if(!sales&&!done&&S.naoentrou>0){ab.hidden=false;ab.innerHTML=`<span><b>${fmt(S.naoentrou)} compradores ainda não entraram no app.</b> É o ponto onde mais se perde gente.</span><button class="link" id="goNE">Ver a lista</button>`;
+    $('#goNE').onclick=()=>{state.filter='naoentrou';state.page=0;go('pessoas')}}else ab.hidden=true;
+  $('#lgA').textContent=c.name;
+  renderRet(c,S);
+  renderFunnel(c,S);
+  renderOrigins(c,S);
+  renderSales(c,S);
+}
+function renderRet(c,S){
+  const W=640,H=260,L=40,R=86,T=14,B=30,w=W-L-R,h=H-T-B;
+  const x=d=>L+(d-1)/20*w,y=v=>T+(100-v)/100*h;
+  let s='';
+  [0,25,50,75,100].forEach(v=>{s+=`<line x1="${L}" x2="${L+w}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line-soft)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`});
+  [1,7,14,21].forEach(d=>{s+=`<text x="${x(d)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--muted)">Dia ${d}</text>`});
+  [7,14].forEach(d=>{s+=`<line x1="${x(d)}" x2="${x(d)}" y1="${T}" y2="${T+h}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${x(d)+4}" y="${T+10}" font-size="10" fill="var(--faint)">live</text>`});
+  const path=(arr,from,to)=>{let p='';for(let d=from;d<=to;d++)p+=(d===from?'M':'L')+x(d).toFixed(1)+','+y(arr[d]).toFixed(1);return p};
+  s+=`<path d="${path(avgCurve,1,21)}" fill="none" stroke="var(--s2)" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
+  s+=`<text x="${x(21)+8}" y="${y(avgCurve[21])+4}" font-size="11" fill="var(--fg)">Média ${Math.round(avgCurve[21])}%</text>`;
+  if(c.cur>=1){
+    s+=`<path d="${path(S.daily,1,c.cur)}" fill="none" stroke="var(--s1)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const e=c.cur;s+=`<circle cx="${x(e)}" cy="${y(S.daily[e])}" r="5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>`;
+    const below=S.daily[e]<avgCurve[e];
+    s+=`<text x="${x(e)}" y="${below?y(S.daily[e])+20:y(S.daily[e])-12}" text-anchor="${e>18?'end':'middle'}" font-size="11" font-weight="600" fill="var(--fg)">${c.name} ${Math.round(S.daily[e])}%</text>`;
+  }else{s+=`<text x="${L+w/2}" y="${T+h/2}" text-anchor="middle" font-size="13" fill="var(--muted)">A turma ainda não começou</text>`}
+  s+=`<line id="xh" x1="0" x2="0" y1="${T}" y2="${T+h}" stroke="var(--muted)" stroke-width="1" opacity="0"/><circle id="hA" r="5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2" opacity="0"/><circle id="hB" r="5" fill="var(--s2)" stroke="var(--surface)" stroke-width="2" opacity="0"/>`;
+  s+=`<rect x="${L}" y="${T}" width="${w}" height="${h}" fill="transparent" id="hit"/>`;
+  $('#ret').innerHTML=s;
+  const svg=$('#ret'),tip=$('#retTip'),box=$('#retBox');
+  const move=ev=>{const r=svg.getBoundingClientRect();const sx=(ev.clientX-r.left)/r.width*W;let d=Math.round((sx-L)/w*20)+1;d=Math.max(1,Math.min(21,d));
+    const has=d<=c.cur;$('#xh').setAttribute('x1',x(d));$('#xh').setAttribute('x2',x(d));$('#xh').setAttribute('opacity',.5);
+    $('#hB').setAttribute('cx',x(d));$('#hB').setAttribute('cy',y(avgCurve[d]));$('#hB').setAttribute('opacity',1);
+    if(has){$('#hA').setAttribute('cx',x(d));$('#hA').setAttribute('cy',y(S.daily[d]));$('#hA').setAttribute('opacity',1)}else $('#hA').setAttribute('opacity',0);
+    tip.innerHTML=`<b>Dia ${d}</b> · ${dmy(dateOf(c,d))}<br><i style="background:var(--s1)"></i>${c.name}: ${has?S.daily[d].toFixed(1).replace('.',',')+'%':'ainda não chegou'}<br><i style="background:var(--s2)"></i>Média: ${avgCurve[d].toFixed(1).replace('.',',')}%`;
+    const top=Math.min(y(avgCurve[d]),has?y(S.daily[d]):999);
+    tip.style.left=Math.max(80,Math.min(r.width-80,x(d)/W*r.width))+'px';tip.style.top=(top/H*r.height-10)+'px';tip.classList.add('on')};
+  const out=()=>{tip.classList.remove('on');['xh','hA','hB'].forEach(id=>$('#'+id).setAttribute('opacity',0))};
+  $('#hit').addEventListener('pointermove',move);$('#hit').addEventListener('pointerleave',out);
+  // insight: biggest drop in average curve
+  let md=2,mv=0;for(let d=2;d<=21;d++){const v=avgCurve[d-1]-avgCurve[d];if(v>mv){mv=v;md=d}}
+  const lesson={4:'Dia 4 · Água, café e coração',9:'Dia 9 · Ultraprocessados',2:'Dia 2 · O sal escondido',3:'Dia 3 · O primeiro passo'}[md]||('Dia '+md);
+  $('#insight').innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg><span><b>Maior queda nas turmas concluídas: do dia ${md-1} para o dia ${md}</b> (−${mv.toFixed(1).replace('.',',')} pontos). Vale revisar o vídeo e a missão do ${lesson}, ou mandar um lembrete extra na véspera.</span>`;
+}
+function fstep(lab,v,base,sub,pending){const w=pending?100:pct(v,base);return `<div class="fstep"><span class="lab">${lab}</span><span class="fbar ${pending?'pending':''}">${pending?'':`<i style="width:${w}%"></i>`}</span><span class="val num">${pending?'—':fmt(v)}<span>${pending?sub:pctf(v,base)}</span></span></div>`}
+function renderFunnel(c,S){
+  const b=S.n;
+  $('#funnel').innerHTML=[
+    fstep('Compraram',S.n,b),
+    fstep('Entraram',S.entered,b,'libera no dia 1',c.state==='vendas'),
+    fstep('Ativos no dia 7',S.d7,b,'dia 7: '+dmy(dateOf(c,7)),S.d7===null),
+    fstep('Ativos no dia 14',S.d14,b,'dia 14: '+dmy(dateOf(c,14)),S.d14===null),
+    fstep('Concluíram',S.concluiu,b,'dia 21: '+dmy(dateOf(c,21)),c.state!=='concluida'),
+    fstep('Assinaram o Clube',S.club,b,'após o dia 21',c.state!=='concluida')].join('')+
+    `<p class="sub" style="font-size:12px">Percentuais sobre o total de compradores.</p>`;
+}
+function renderOrigins(c,S){
+  $('#origins').innerHTML=ORIG.map(([o])=>{const ps=S.ps.filter(p=>p.origin===o);const e=ps.filter(p=>p.entered).length;const a=ps.filter(p=>p.status==='ativo'||p.status==='concluiu').length;const rev=ps.length*PRICE+ps.filter(p=>p.bump).length*BUMP;
+    return `<tr><td>${o}</td><td class="r num">${fmt(ps.length)}</td><td class="r num">${c.state==='vendas'?'—':pctf(e,ps.length)}</td><td class="r num">${c.state==='vendas'?'—':pctf(a,e)}</td><td class="r num">${brl(rev)}</td></tr>`}).join('');
+}
+function renderSales(c,S){
+  const visits=Math.round(S.n/0.034), checkout=Math.round(S.n/0.46);
+  $('#sales').innerHTML=fstep('Visitas',visits,visits)+fstep('Abriram o checkout',checkout,visits)+fstep('Compraram',S.n,visits)+
+  `<p class="sub" style="font-size:12px">Conversão da página: <b>${pctf(S.n,visits)}</b>. Na versão final, visitas vêm do Pixel/Analytics e compras do webhook do checkout.</p>`;
+}
+
+/* ---------- PARTICIPANTES ---------- */
+const FILTERS=[['todos','Todos'],['naoentrou','Não entrou'],['ativo','Ativo'],['risco','Em risco'],['sumido','Sumido'],['concluiu','Concluiu'],['naoconcluiu','Não concluiu'],['clube','Clube']];
+$('#teamSel').innerHTML='<option value="todos">Todos os times</option>'+TEAMS.map(t=>`<option value="${t}">Time ${t}</option>`).join('');
+$('#teamSel').addEventListener('change',e=>{state.team=e.target.value;state.page=0;renderPessoas(cohort(),stats(cohort()))});
+$('#search').addEventListener('input',e=>{state.q=e.target.value.trim().toLowerCase();state.page=0;renderPessoas(cohort(),stats(cohort()))});
+function filtered(S){
+  return S.ps.filter(p=>(state.filter==='todos'||(state.filter==='clube'?p.club:p.status===state.filter))&&(state.team==='todos'||p.team===state.team)&&(!state.q||p.name.toLowerCase().includes(state.q)||p.phone.endsWith(state.q)))
+    .sort((a,b)=>{const o={sumido:0,risco:1,naoentrou:2,ativo:3,naoconcluiu:4,concluiu:5};return (o[a.status]-o[b.status])||(b.points-a.points)});
+}
+function lastTxt(c,p){if(!p.entered)return '<span style="color:var(--muted)">nunca</span>';const gap=c.cur-p.last;return gap===0?'hoje':gap===1?'ontem':c.state==='concluida'?`dia ${p.last}`:`há ${gap} dias`}
+function renderPessoas(c,S){
+  const counts={todos:S.n,naoentrou:S.naoentrou,ativo:S.ativo,risco:S.risco,sumido:S.sumido,concluiu:S.concluiu,naoconcluiu:S.naoconcluiu,clube:S.club};
+  const show=FILTERS.filter(([k])=>k==='todos'||counts[k]>0||k===state.filter);
+  $('#filters').innerHTML=show.map(([k,l])=>`<button class="fchip" data-f="${k}" aria-pressed="${state.filter===k}">${l}<b class="num">${fmt(counts[k])}</b></button>`).join('');
+  $$('#filters [data-f]').forEach(b=>b.onclick=()=>{state.filter=b.dataset.f;state.page=0;renderPessoas(c,S)});
+  const list=filtered(S), per=20, pages=Math.max(1,Math.ceil(list.length/per));state.page=Math.min(state.page,pages-1);
+  const slice=list.slice(state.page*per,state.page*per+per);
+  $('#rows').innerHTML=slice.length?slice.map(p=>`<tr data-id="${p.id}"><td class="who"><b>${esc(p.name)}</b><span class="num">${p.phone}</span></td><td>${pill(p.status)}${p.club?' '+pill('clube'):''}</td>
+    <td><div class="prog"><span class="bar"><i style="width:${pct(p.last,21)}%"></i></span><span class="num">${p.entered?'dia '+p.last:'—'}</span></div></td>
+    <td class="r num">${fmt(p.points)}</td><td class="r num">${p.streak?p.streak+' dias':'—'}</td><td>${lastTxt(c,p)}</td><td>${p.team}</td><td>${p.origin}</td></tr>`).join('')
+    :`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">Ninguém com esse filtro nesta turma.</td></tr>`;
+  $$('#rows tr[data-id]').forEach(tr=>tr.onclick=()=>openDrawer(+tr.dataset.id));
+  $('#pager').innerHTML=`<span class="num">${list.length?`${state.page*per+1}–${Math.min(list.length,(state.page+1)*per)} de ${fmt(list.length)}`:'0 pessoas'}</span><div><button id="pv" ${state.page===0?'disabled':''}>Anterior</button><button id="nx" ${state.page>=pages-1?'disabled':''}>Próxima</button></div>`;
+  $('#pv').onclick=()=>{state.page--;renderPessoas(c,S)};$('#nx').onclick=()=>{state.page++;renderPessoas(c,S)};
+}
+$('#copyList').addEventListener('click',()=>{const S=stats(cohort());const l=filtered(S);
+  const txt=l.map(p=>`${p.name};${p.phone}`).join('\n');
+  const ok=()=>toast(`${fmt(l.length)} contatos copiados. No painel real, os números saem completos.`);
+  try{navigator.clipboard.writeText(txt).then(ok,()=>toast('Não consegui copiar aqui. No painel real isso vira uma exportação.'))}catch(e){toast('Não consegui copiar aqui.')}});
+
+/* ---------- DRAWER ---------- */
+const TEMPL={
+  naoentrou:p=>`Oi, ${p.first}! Aqui é a equipe da Dra. Bia. Vi que você ainda não entrou no Desafio Coração Forte. Seu acesso está pronto neste link: [link]. Leva 2 minutos e o dia 1 já está te esperando.`,
+  risco:p=>`${p.first}, sentimos sua falta no Coração Forte! Sua sequência está guardada pelo escudo. A missão de hoje leva 10 minutos: [link]`,
+  sumido:p=>`Oi, ${p.first}. Tudo bem por aí? Cada um tem seu ritmo, e dá pra retomar de onde parou. Que tal voltar hoje com a missão do dia? [link]`,
+  ativo:p=>`Parabéns, ${p.first}! Você está mandando bem no Coração Forte. Continue assim!`,
+  concluiu:p=>`${p.first}, você concluiu os 21 dias! Seu certificado está no app. Quer seguir com a gente no Clube Coração Forte? [link]`,
+  naoconcluiu:p=>`Oi, ${p.first}! A próxima turma do Coração Forte começa segunda. Quer uma nova chance com desconto de quem já participou? [link]`};
+function openDrawer(id){
+  const c=cohort(),p=loadParticipants(c).find(x=>x.id===id);if(!p)return;
+  $('#dName').textContent=p.name;$('#dSub').textContent=`${p.phone} · Time ${p.team} · ${c.name}`;
+  let days='';for(let d=1;d<=21;d++){const cls=d>c.cur?'f':p.days[d]?'a':p.entered?'m':'';days+=`<i class="${cls}" title="Dia ${d}"></i>`}
+  const ev=[];
+  ev.push([dmy(p.bought),`Comprou pelo canal ${p.origin} · R$ ${PRICE}${p.bump?' + diário de pressão R$ '+BUMP:''}`]);
+  if(p.entered){ev.push([dmy(dateOf(c,1)),'Primeiro acesso e triagem respondida']);
+    const act=[];for(let d=Math.min(c.cur,21);d>=1&&act.length<5;d--)if(p.days[d])act.push(d);
+    act.reverse().forEach(d=>ev.push([dmy(dateOf(c,d)),`Dia ${d}: ${[1,7,14,21].includes(d)?'medição oficial registrada, ':''}missão e check-in de hábitos`]));
+    if(p.status==='risco')ev.push([dmy(TODAY),'Automação "Em risco" enviada por WhatsApp']);
+    if(p.status==='sumido')ev.push([dmy(TODAY),'Automação "Sumido" enviada por WhatsApp']);
+    if(p.status==='concluiu')ev.push([dmy(dateOf(c,21)),'Certificado emitido · oferta do Clube enviada']);
+    if(p.club)ev.push([dmy(dateOf(c,22)),'Assinou o Clube Coração Forte · R$ 39/mês']);
+  }else if(c.state!=='vendas')ev.push([dmy(TODAY),'Automação "Comprou e não entrou" enviada']);
+  const msg=TEMPL[p.status](p);
+  $('#dBody').innerHTML=`
+    <div>${pill(p.status)}${p.club?' '+pill('clube'):''}</div>
+    <div class="kv"><div><span>Pontos</span><b class="num">${fmt(p.points)}</b></div><div><span>Sequência</span><b class="num">${p.streak} dias</b></div><div><span>Missões</span><b class="num">${p.missions}/${Math.min(c.cur,21)}</b></div></div>
+    <div><div class="sec">Os 21 dias</div><div class="days">${days}</div><p class="sub" style="font-size:12px;margin-top:6px">Verde-escuro: fez check-in. Contorno vermelho: dia perdido. Tracejado: ainda não chegou.</p></div>
+    <div><div class="sec">Histórico</div><div class="tl">${ev.slice().reverse().map(([d,t])=>`<div><span class="num">${d}</span>${esc(t)}</div>`).join('')}</div></div>
+    <div><div class="sec">Mensagem sugerida</div><div class="suggest" id="sugg">${esc(msg)}</div><div style="margin-top:8px"><button class="btn" id="copyMsg">Copiar mensagem</button></div></div>
+    <div><div class="sec">Anotações da equipe</div><div class="notes" id="notes">${p.notes.map(n=>`<div>${esc(n)}</div>`).join('')}</div>
+      <textarea id="noteIn" placeholder="Ex.: respondeu no WhatsApp, vai voltar amanhã"></textarea><div style="margin-top:8px"><button class="btn ghost" id="addNote">Salvar anotação</button></div></div>
+    <p class="sub" style="font-size:12px">Valores de pressão e respostas da triagem não aparecem no painel. Ficam só no app, protegidos pela LGPD.</p>`;
+  $('#copyMsg').onclick=()=>{try{navigator.clipboard.writeText(msg).then(()=>toast('Mensagem copiada.'),()=>toast('Selecione o texto para copiar.'))}catch(e){}};
+  $('#addNote').onclick=()=>{const v=$('#noteIn').value.trim();if(!v)return;p.notes.push(v);$('#notes').insertAdjacentHTML('beforeend',`<div>${esc(v)}</div>`);$('#noteIn').value='';toast('Anotação salva neste protótipo.')};
+  $('#scrim').hidden=false;$('#drawer').classList.add('open');$('#drawer').setAttribute('aria-hidden','false');$('#dClose').focus();
+}
+function closeDrawer(){$('#drawer').classList.remove('open');$('#drawer').setAttribute('aria-hidden','true');$('#scrim').hidden=true}
+$('#dClose').onclick=closeDrawer;$('#scrim').onclick=closeDrawer;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+
+/* ---------- AUTOMAÇÕES ---------- */
+const RULES=[
+  {k:'naoentrou',t:'Comprou e não entrou',w:'24h após a compra sem primeiro acesso',ch:'WhatsApp',ret:.58},
+  {k:'boasvindas',t:'Boas-vindas',w:'Na compra',ch:'E-mail + WhatsApp',ret:null,msg:p=>`Bem-vinda ao Coração Forte, ${p.first}! Seu acesso: [link]. O dia 1 começa segunda às 6h.`},
+  {k:'lembrete',t:'Missão do dia',w:'Todo dia às 7h para quem está no desafio',ch:'Notificação',ret:null,msg:p=>`Bom dia, ${p.first}! A missão de hoje já chegou. Leva 10 minutos.`},
+  {k:'risco',t:'Em risco',w:'2 dias sem check-in',ch:'WhatsApp',ret:.41},
+  {k:'sumido',t:'Sumido',w:'4 dias sem check-in',ch:'WhatsApp',ret:.17},
+  {k:'concluiu',t:'Concluiu e oferta do Clube',w:'Ao terminar o dia 21',ch:'E-mail + WhatsApp',ret:.29}];
+function renderAuto(c,S){
+  const sent={naoentrou:Math.round(S.naoentrou/.42),boasvindas:S.n,lembrete:c.state==='vendas'?0:S.entered*Math.max(1,c.cur),risco:Math.round((S.risco+S.sumido)*1.6),sumido:S.sumido,concluiu:S.concluiu};
+  if(c.state==='vendas'){sent.naoentrou=0;sent.risco=0;sent.sumido=0}
+  const ex={first:'Mariana'};
+  $('#rules').innerHTML=RULES.map(r=>{const on=state.auto[r.k]!==false;const m=(r.msg||TEMPL[r.k])(ex);
+    return `<div class="rule"><div><div class="when"><h3>${r.t}</h3><span class="chan">${r.ch}</span></div><p class="sub" style="margin-top:2px">Quando: ${r.w}</p>
+      <div class="msg">${esc(m)}</div>
+      <div class="meta"><span>Enviadas nesta turma: <b class="num">${fmt(sent[r.k])}</b></span>${r.ret!==null?`<span>Voltaram em 48h: <b class="num">${Math.round(r.ret*100)}%</b></span>`:''}</div></div>
+      <button class="switch" role="switch" aria-checked="${on}" aria-label="Ativar automação ${r.t}" data-k="${r.k}"></button></div>`}).join('');
+  $$('.switch').forEach(b=>b.onclick=()=>{const k=b.dataset.k;state.auto[k]=!(state.auto[k]!==false);b.setAttribute('aria-checked',state.auto[k]);toast(state.auto[k]?'Automação ligada.':'Automação pausada.')});
+}
+
+/* ---------- TURMAS ---------- */
+function renderTurmas(){
+  const all=COHORTS.map(c=>[c,stats(c)]);
+  const subs=all.reduce((a,[,S])=>a+S.club,0), buyers=all.reduce((a,[,S])=>a+S.n,0), rev=all.reduce((a,[,S])=>a+S.rev,0);
+  const done=all.filter(([c])=>c.state==='concluida');
+  const compl=done.reduce((a,[,S])=>a+S.concluiu,0)/done.reduce((a,[,S])=>a+S.entered,0)*100;
+  $('#clubTiles').innerHTML=[tile('Compradores no total',fmt(buyers),`em ${COHORTS.length} turmas`),tile('Receita do desafio',brl(rev),'ingresso + order bump'),
+    tile('Taxa de conclusão',compl.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%','média das turmas concluídas'),
+    tile('Assinantes do Clube',fmt(subs),`<b>${brl(subs*CLUB)}</b> por mês`)].join('');
+  $('#cohortRows').innerHTML=all.slice().reverse().map(([c,S])=>`<tr data-c="${c.id}"><td><b>${c.name}</b></td><td class="num">${dmy(c.start)}</td>
+    <td>${c.state==='vendas'?'<span class="pill st-naoentrou">Vendas abertas</span>':c.state==='concluida'?'<span class="pill st-concluiu">Concluída</span>':`<span class="pill st-ativo">Dia ${c.day} de 21</span>`}</td>
+    <td class="r num">${fmt(S.n)}</td><td class="r num">${c.state==='vendas'?'—':pctf(S.entered,S.n)}</td><td class="r num">${S.d7===null?'—':pctf(S.d7,S.entered)}</td>
+    <td class="r num">${c.state==='concluida'?pctf(S.concluiu,S.entered):'—'}</td><td class="r num">${c.state==='concluida'?fmt(S.club):'—'}</td><td class="r num">${brl(S.rev)}</td></tr>`).join('');
+  $$('#cohortRows tr').forEach(tr=>tr.onclick=()=>{state.cohort=+tr.dataset.c;$('#cohortSel').value=state.cohort;state.filter='todos';state.page=0;go('geral')});
+}
+
+/* ---------- RECEITA ---------- */
+const brl2=n=>'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+state.fee=10;state.ads={};
+const adsDefault=(c,S)=>Math.round(S.ps.filter(p=>p.origin==='Tráfego pago').length*41/50)*50;
+$('#feeIn').addEventListener('input',e=>{state.fee=Math.max(0,parseFloat(e.target.value)||0);renderReceita(cohort(),stats(cohort()))});
+$('#adsIn').addEventListener('input',e=>{state.ads[state.cohort]=Math.max(0,parseFloat(e.target.value)||0);renderReceita(cohort(),stats(cohort()))});
+['simPrice','simBuyers','simBump','simClub','simAds'].forEach(id=>$('#'+id).addEventListener('input',renderSim));
+function renderReceita(c,S){
+  const ads=state.ads[c.id]??adsDefault(c,S);
+  if(document.activeElement!==$('#adsIn'))$('#adsIn').value=ads;
+  const ticket=S.n*PRICE, bump=S.bumps*BUMP, gross=ticket+bump, fee=gross*state.fee/100, net=gross-fee-ads;
+  const paid=S.ps.filter(p=>p.origin==='Tráfego pago'), paidRev=paid.length*PRICE+paid.filter(p=>p.bump).length*BUMP;
+  const mrr=COHORTS.reduce((a,x)=>a+stats(x).club,0)*CLUB;
+  $('#revTiles').innerHTML=[
+    tile('Receita bruta',brl(gross),`${c.name} · ingresso + bump`),
+    tile('Receita líquida',brl(net),`depois de taxa e tráfego`),
+    tile('Ticket médio',brl2(S.n?gross/S.n:0),`ingresso R$ ${PRICE} + bump`),
+    tile('Taxa da plataforma',brl(fee),`${state.fee.toLocaleString('pt-BR')}% da receita bruta`),
+    tile('Retorno do tráfego',ads?(paidRev/ads).toLocaleString('pt-BR',{maximumFractionDigits:1})+'x':'—',ads?`${fmt(paid.length)} vendas · ${brl2(ads/Math.max(1,paid.length))} por venda`:'sem tráfego pago'),
+    tile('Clube por mês',brl(mrr),`${fmt(mrr/CLUB)} assinantes ativos · todas as turmas`)].join('');
+  $('#compSub').textContent=`${c.name} · ${c.state==='vendas'?'vendas abertas':c.state==='concluida'?'concluída':'em andamento'}`;
+  const clubN=S.club;
+  $('#revComp').innerHTML=`
+    <tr><td>Ingresso do desafio</td><td class="r num">${fmt(S.n)}</td><td class="r num">${brl2(PRICE)}</td><td class="r num">${brl2(ticket)}</td></tr>
+    <tr><td>Order bump (diário de pressão)</td><td class="r num">${fmt(S.bumps)}</td><td class="r num">${brl2(BUMP)}</td><td class="r num">${brl2(bump)}</td></tr>
+    <tr class="minus"><td>Taxa da plataforma</td><td class="r num">${state.fee.toLocaleString('pt-BR')}%</td><td></td><td class="r num">−${brl2(fee)}</td></tr>
+    <tr class="minus"><td>Tráfego pago</td><td></td><td></td><td class="r num">−${brl2(ads)}</td></tr>
+    <tr class="total"><td>Líquido da turma</td><td></td><td></td><td class="r num">${brl2(net)}</td></tr>
+    <tr><td>Clube gerado por esta turma</td><td class="r num">${c.state==='concluida'?fmt(clubN):'—'}</td><td class="r num">${brl2(CLUB)}/mês</td><td class="r num">${c.state==='concluida'?brl2(clubN*CLUB)+'/mês':'após o dia 21'}</td></tr>`;
+  renderRevChart();
+}
+function renderRevChart(){
+  const data=COHORTS.map(c=>{const S=stats(c);return{c,t:S.n*PRICE,b:S.bumps*BUMP}});
+  const W=640,H=260,L=56,R=10,T=26,B=30,w=W-L-R,h=H-T-B;
+  const max=Math.ceil(Math.max(...data.map(d=>d.t+d.b))/10000)*10000;
+  const y=v=>T+h-v/max*h, bw=Math.min(52,w/data.length*.56), slot=w/data.length;
+  let s='';
+  for(let v=0;v<=max;v+=10000){s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line-soft)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v?(v/1000)+' mil':'0'}</text>`}
+  data.forEach((d,i)=>{const cx=L+slot*i+slot/2,x0=cx-bw/2;const yt=y(d.t),yb=y(d.t+d.b);const sel=d.c.id===state.cohort;
+    s+=`<path d="M${x0},${y(0)}V${yt}H${x0+bw}V${y(0)}Z" fill="var(--s1)" opacity="${sel?1:.55}"/>`;
+    const top=yb, bot=yt-2; if(bot-top>1)s+=`<path d="M${x0},${bot}V${top+4}Q${x0},${top} ${x0+4},${top}H${x0+bw-4}Q${x0+bw},${top} ${x0+bw},${top+4}V${bot}Z" fill="var(--s2)" opacity="${sel?1:.55}"/>`;
+    s+=`<text x="${cx}" y="${yb-7}" text-anchor="middle" font-size="11" font-weight="${sel?700:500}" fill="var(--fg)">${brl(d.t+d.b).replace('R$ ','')}</text>`;
+    s+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="11" fill="${sel?'var(--fg)':'var(--muted)'}" font-weight="${sel?600:400}">T${d.c.id}</text>`;
+    s+=`<rect class="hb" data-i="${i}" x="${L+slot*i}" y="${T}" width="${slot}" height="${h}" fill="transparent"/>`});
+  $('#revChart').innerHTML=s;
+  const svg=$('#revChart'),tip=$('#revTip');
+  $$('#revChart .hb').forEach(r=>{r.addEventListener('pointermove',()=>{const d=data[+r.dataset.i],rb=svg.getBoundingClientRect(),i=+r.dataset.i;
+      tip.innerHTML=`<b>${d.c.name}</b> · ${d.c.state==='vendas'?'vendas abertas':d.c.state==='concluida'?'concluída':'dia '+d.c.day}<br><i style="background:var(--s1)"></i>Ingresso: ${brl2(d.t)}<br><i style="background:var(--s2)"></i>Order bump: ${brl2(d.b)}<br>Total: <b>${brl2(d.t+d.b)}</b>`;
+      tip.style.left=Math.max(90,Math.min(rb.width-90,(L+slot*i+slot/2)/W*rb.width))+'px';tip.style.top=(y(d.t+d.b)/H*rb.height-14)+'px';tip.classList.add('on')});
+    r.addEventListener('pointerleave',()=>tip.classList.remove('on'));
+    r.addEventListener('click',()=>{state.cohort=COHORTS[+r.dataset.i].id;$('#cohortSel').value=state.cohort;renderAll()})});
+  renderSim();
+}
+function renderSim(){
+  const v=id=>Math.max(0,parseFloat($('#'+id).value)||0);
+  const price=v('simPrice'),n=v('simBuyers'),bp=v('simBump')/100,cl=v('simClub')/100,ads=v('simAds');
+  const gross=n*price+n*bp*BUMP, fee=gross*state.fee/100, net=gross-fee-ads;
+  const done=COHORTS.filter(c=>c.state==='concluida').map(stats);
+  const complRate=done.reduce((a,S)=>a+S.concluiu,0)/Math.max(1,done.reduce((a,S)=>a+S.n,0));
+  const subs=Math.round(n*complRate*cl), mrr=subs*CLUB;
+  $('#simOut').innerHTML=`
+    <div><span>Receita bruta</span><b class="num">${brl2(gross)}</b><em>ingresso + order bump</em></div>
+    <div><span>Receita líquida da turma</span><b class="num" style="color:${net<0?'var(--crit)':'inherit'}">${brl2(net)}</b><em>menos ${state.fee.toLocaleString('pt-BR')}% de taxa e o tráfego</em></div>
+    <div><span>Novos assinantes do Clube</span><b class="num">${fmt(subs)}</b><em>${(complRate*100).toLocaleString('pt-BR',{maximumFractionDigits:0})}% concluem, média das turmas</em></div>
+    <div><span>Clube gerado por mês</span><b class="num">${brl2(mrr)}</b><em>${brl2(mrr*6)} se ficarem 6 meses</em></div>`;
+}
+
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
+renderAll();
+})();
+</script>

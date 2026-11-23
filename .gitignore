@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+CHAVES_*.txt
+node_modules/
+dist/
+build/
+.next/
+.vercel/
+.supabase/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
